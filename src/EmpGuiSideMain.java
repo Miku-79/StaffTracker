@@ -16,6 +16,8 @@ import javax.swing.JPanel;
 
 public class EmpGuiSideMain {
 
+    private static EmpGuiDashboard DashboardObject;
+
     public void createSidebar(JFrame frame,ArrayList<JButton> buttonref,CardLayout clayout, JPanel mainpanel){
         
         JPanel sidebar = new JPanel();
@@ -25,7 +27,7 @@ public class EmpGuiSideMain {
         frame.add(sidebar , BorderLayout.WEST);
 
         ImageIcon Logo = new ImageIcon("./Assets/Logo.png");
-        Logo = new ImageIcon(Logo.getImage().getScaledInstance(180, 160, Image.SCALE_SMOOTH));
+        Logo = new ImageIcon(Logo.getImage().getScaledInstance(160, 120, Image.SCALE_SMOOTH));
         JLabel LogoLabel = new JLabel();
         LogoLabel.setIcon(Logo);
         sidebar.add(Box.createVerticalStrut(10));
@@ -34,7 +36,7 @@ public class EmpGuiSideMain {
 
         sidebar.add(Box.createVerticalStrut(15));
        
-        String[] buttonNames = { "Dashboard", "Employees", "Settings", "Logout" };
+        String[] buttonNames = { "Dashboard", "Employees","Tasks", "Settings", "Logout" };
 
         for(String bname : buttonNames)
         {   
@@ -52,6 +54,11 @@ public class EmpGuiSideMain {
                 }
 
                 button.setBackground(EmpGuiUtility.ButtonPressedColor);
+
+                if (bname.equals("Dashboard")){
+                    DashboardObject.updateDashboardData(frame);
+                }
+                
             });
             buttonref.add(button);
         }
@@ -64,6 +71,7 @@ public class EmpGuiSideMain {
 
         JPanel Dashboard = new JPanel();
         JPanel Employees = new JPanel();
+        JPanel Tasks = new JPanel();
         JPanel Settings = new JPanel();
         JPanel Logout = new JPanel();
 
@@ -75,13 +83,17 @@ public class EmpGuiSideMain {
         Employees = EmployeeObject.createEmployees(Employees,frame);
         mainpanel.add(Employees,"Employees");
 
+        EmpGuiTasks TaskObject = new EmpGuiTasks();
+        Tasks = TaskObject.createTasksPanel(Tasks, frame);
+        mainpanel.add(Tasks, "Tasks");
+
         EmpGuiSetting SettingObject = new EmpGuiSetting();
         Settings = SettingObject.createSettings(Settings);
         mainpanel.add(Settings,"Settings");
 
-        EmpGuiDashboard DashboardObject = new EmpGuiDashboard();
-        Dashboard = DashboardObject.createDashboardPanel(Dashboard,frame);
-        mainpanel.add(Dashboard,"Dashboard");
+        DashboardObject = new EmpGuiDashboard();
+        Dashboard = DashboardObject.createDashboardPanel(frame);
+        mainpanel.add(Dashboard, "Dashboard");
 
         clayout.show(mainpanel, "Dashboard");
     }

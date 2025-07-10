@@ -26,10 +26,10 @@ private static Connection conn;
 
             if(conn == null){
                 conn = DriverManager.getConnection(url, DBuser, DBpass);
-                System.out.println("= SQL Connection done!");   
+                System.out.println("SQL Connection done!");   
             }
         } catch(SQLException e) {
-            System.out.println("=SQL Connection failed!\n");
+            System.out.println("SQL Connection failed!\n");
             e.printStackTrace();
             return false;
         }
@@ -261,6 +261,79 @@ private static Connection conn;
         return recentEmployees;
     }
 
+    public void getAllTasks(DefaultTableModel model) {
+        String query = "SELECT Task_id, Task_description, Emp_data_table.Emp_id, Emp_Name " +
+                       "FROM Task_table " +
+                       "JOIN Emp_data_table ON Task_table.Emp_id = Emp_data_table.Emp_id";
+    
+        try (PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+    
+            while (rs.next()) {
+                model.addRow(new Object[] {
+                    rs.getInt("Task_id"),
+                    rs.getString("Task_description"),
+                    rs.getInt("Emp_id"),
+                    rs.getString("Emp_name")
+                });
+            }
+    
+        } catch (Exception e) {
+            System.out.println("Error occurred while fetching tasks: " + e);
+        }
+    }    
+    
+    public boolean deleteTask(int taskId) {
+        String query = "DELETE FROM Task_table WHERE Task_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, taskId);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("Delete Task Error: " + e);
+            return false;
+        }
+    }
+    
+    public boolean updateTask(int taskId, String desc, int empId) {
+        String query = "UPDATE Task_table SET Task_description = ?, Emp_id = ? WHERE Task_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, desc);
+            stmt.setInt(2, empId);
+            stmt.setInt(3, taskId);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("Update Task Error: " + e);
+            return false;
+        }
+    }
+
+    public String[] getTaskDetail(int taskId) {
+        String query = "SELECT Task_description, Emp_id FROM Task_table WHERE Task_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, taskId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new String[]{rs.getString("Task_description"), String.valueOf(rs.getInt("Emp_id"))};
+            }
+        } catch (Exception e) {
+            System.out.println("Get Task Detail Error: " + e);
+        }
+        return null;
+    }
+    
+    public boolean addTask(String desc, int empId) {
+        String query = "INSERT INTO Task_table (Task_description, Emp_id) VALUES (?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, desc);
+            stmt.setInt(2, empId);
+            return stmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("Add Task Error: " + e);
+            return false;
+        }
+    }
+    
+
     public Employee ExtractEmployee(ResultSet result) throws SQLException{
         
         return new Employee(
@@ -274,7 +347,23 @@ private static Connection conn;
             result.getString("department"),
             result.getString("gender"));
     }
+
+    public boolean connClose() {
+        try {
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+                conn = null; // optional: clear reference
+                return true;
+            }
+            else
+            {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error closing connection: " + e);
+            System.out.println("conn is already closed");
+        }
+        return false;
+    }
+    
 }
-
-
-// conn.close(); IMPOERTANT USE THIS 

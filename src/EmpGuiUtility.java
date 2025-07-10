@@ -62,7 +62,7 @@ public class EmpGuiUtility {
                     }
                     break;
                 case 5: 
-                if (!textfielddata.matches("^\\d{1,2}/\\d{1,2}/\\d{4}$")) {
+                if (!textfielddata.matches("^\\d{4}-\\d{1,2}-\\d{1,2}$")) {
                     errorLabel.setText("Date field error");
                     return null;
                 }

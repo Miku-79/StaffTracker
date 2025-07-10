@@ -5,47 +5,34 @@ import javax.swing.border.EmptyBorder;
 
 public class EmpGuiDashboard {
 
-    private EmpSql sqldata = new EmpSql(); //Created object like EmpGuiEmployee
+    private EmpSql sqldata = new EmpSql();
 
-    public EmpGuiDashboard() {
-        // Empty constructor
-    }
+    private JLabel totalEmpLabel;
+    private JLabel deptITLabel;
+    private JLabel deptHRLabel;
+    private JLabel deptFinLabel;
+    private JLabel deptMgmtLabel;
+    private JPanel recentEmpPanel;
 
-    public JPanel createDashboardPanel(JPanel dashboard, JFrame mainframe) {
-        dashboard.setLayout(new BorderLayout());
+    public JPanel createDashboardPanel(JFrame mainframe) {
+        JPanel dashboard = new JPanel(new BorderLayout());
         dashboard.setBackground(new Color(245, 245, 245));
 
-        // Title
-        JLabel title = new JLabel("Dashboard Overview");
+        JLabel title = new JLabel("Dashboard Overview", SwingConstants.CENTER);
         title.setFont(new Font("SansSerif", Font.BOLD, 28));
-        title.setHorizontalAlignment(SwingConstants.CENTER);
-        title.setBorder(BorderFactory.createEmptyBorder(20, 10, 10, 10));
+        title.setBorder(new EmptyBorder(20, 10, 10, 10));
         dashboard.add(title, BorderLayout.NORTH);
 
-        // Main container with vertical layout
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        centerPanel.setBackground(new Color(245, 245, 245));
         centerPanel.setBorder(new EmptyBorder(30, 100, 30, 100));
+        centerPanel.setBackground(new Color(245, 245, 245));
 
-        boolean isConnected = sqldata.ConnectToSql();
-        if (!isConnected) {
-            EmpGuiUtility.DynamicTitleChange("Failed to Connect to DB", 3000, mainframe, EmpGuiUtility.Red);
-        }
-
-        int totalEmp = sqldata.getTotalEmployeeCount();
-        int deptIT = sqldata.getDepartmentCount("IT");
-        int deptHR = sqldata.getDepartmentCount("HR");
-        int deptFin = sqldata.getDepartmentCount("Finance");
-        int deptMgmt = sqldata.getDepartmentCount("Management");
-
-        Font labelFont = new Font("SansSerif", Font.PLAIN, 16);
-
-        centerPanel.add(createAlignedLabel("Total Employees: " + totalEmp, labelFont));
-        centerPanel.add(createAlignedLabel("IT Department: " + deptIT, labelFont));
-        centerPanel.add(createAlignedLabel("HR Department: " + deptHR, labelFont));
-        centerPanel.add(createAlignedLabel("Finance Department: " + deptFin, labelFont));
-        centerPanel.add(createAlignedLabel("Management Department: " + deptMgmt, labelFont));
+        totalEmpLabel = createStatLabel(centerPanel, "Total Employees: ");
+        deptITLabel   = createStatLabel(centerPanel, "IT Department: ");
+        deptHRLabel   = createStatLabel(centerPanel, "HR Department: ");
+        deptFinLabel  = createStatLabel(centerPanel, "Finance Department: ");
+        deptMgmtLabel = createStatLabel(centerPanel, "Management Department: ");
 
         JLabel recentTitle = new JLabel("Recently Added Employees");
         recentTitle.setFont(new Font("SansSerif", Font.BOLD, 20));
@@ -53,20 +40,49 @@ public class EmpGuiDashboard {
         recentTitle.setBorder(new EmptyBorder(20, 0, 10, 0));
         centerPanel.add(recentTitle);
 
-        List<Employee> recent = sqldata.getRecentEmployees(3);
-        for (Employee emp : recent) {
-            centerPanel.add(createAlignedLabel(emp.getId() + ". " + emp.getName() + " | Joined: " + emp.getDOJ(), new Font("SansSerif", Font.PLAIN, 14)));
-        }
+        recentEmpPanel = new JPanel();
+        recentEmpPanel.setLayout(new BoxLayout(recentEmpPanel, BoxLayout.Y_AXIS));
+        recentEmpPanel.setBackground(new Color(245, 245, 245));
+        centerPanel.add(recentEmpPanel);
 
         dashboard.add(centerPanel, BorderLayout.CENTER);
+        updateDashboardData(mainframe); // initial load
+
         return dashboard;
     }
 
-    private JLabel createAlignedLabel(String text, Font font) {
+    private JLabel createStatLabel(JPanel parent, String text) {
         JLabel label = new JLabel(text);
-        label.setFont(font);
+        label.setFont(new Font("SansSerif", Font.PLAIN, 16));
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         label.setBorder(new EmptyBorder(5, 0, 5, 0));
+        parent.add(label);
         return label;
+    }
+
+    public void updateDashboardData(JFrame mainframe) {
+        if (!sqldata.ConnectToSql()) {
+            EmpGuiUtility.DynamicTitleChange("Failed to Connect to DB", 3000, mainframe, EmpGuiUtility.Red);
+            return;
+        }
+
+        totalEmpLabel.setText("Total Employees: " + sqldata.getTotalEmployeeCount());
+        deptITLabel.setText("IT Department: " + sqldata.getDepartmentCount("IT"));
+        deptHRLabel.setText("HR Department: " + sqldata.getDepartmentCount("HR"));
+        deptFinLabel.setText("Finance Department: " + sqldata.getDepartmentCount("Finance"));
+        deptMgmtLabel.setText("Management Department: " + sqldata.getDepartmentCount("Management"));
+
+        // Clear and rebuild recent employees
+        recentEmpPanel.removeAll();
+        List<Employee> recent = sqldata.getRecentEmployees(3);
+        for (Employee emp : recent) {
+            JLabel label = new JLabel(emp.getId() + ". " + emp.getName() + " | Joined: " + emp.getDOJ());
+            label.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            label.setBorder(new EmptyBorder(2, 0, 2, 0));
+            recentEmpPanel.add(label);
+        }
+
+        recentEmpPanel.revalidate();
+        recentEmpPanel.repaint();
     }
 }

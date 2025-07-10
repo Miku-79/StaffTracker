@@ -77,8 +77,9 @@ public class EmpGuiEmployee {
         DeleteEmpButton.addActionListener(e -> {
             
             String searchedValue = searchArea.getText();
-            if(searchedValue.trim().isEmpty())
+            if(searchedValue.trim().isEmpty() || (!searchedValue.matches("^\\d+$")))
             {
+                EmpGuiUtility.DynamicTitleChange("No Valid ID Provided", 3000, mainframe, EmpGuiUtility.Green);
                 return;
             }
             int confirm = JOptionPane.showConfirmDialog(
@@ -94,6 +95,8 @@ public class EmpGuiEmployee {
                 boolean isDeleted = sqldata.deleteEmployee(Integer.parseInt(searchedValue));
                 if(isDeleted){
                     EmpGuiUtility.DynamicTitleChange("Record Deleted successfully", 3000, mainframe, EmpGuiUtility.Green);
+                    DefTableModel.setRowCount(0);
+                    sqldata.getallEmployee(DefTableModel);
                 }
                 else{
                     EmpGuiUtility.DynamicTitleChange("Error Occured: Deletion Failed", 3000, mainframe, EmpGuiUtility.Red);
@@ -114,10 +117,12 @@ public class EmpGuiEmployee {
                 return;
             }
             createEmpdataWindow("Update Record", "Update", 0, Integer.parseInt(empid),mainframe);
+            DefTableModel.setRowCount(0);
+            sqldata.getAllTasks(DefTableModel);
         });
 
         ReconnectButton.addActionListener(e -> {
-            if(sqldata.ConnectToSql()){
+            if(sqldata.connClose() && sqldata.ConnectToSql()){
                 DefTableModel.setRowCount(0);
                 sqldata.getallEmployee(DefTableModel); 
                 EmpGuiUtility.DynamicTitleChange("Connected to DB", 3000, mainframe, EmpGuiUtility.Green);
@@ -155,7 +160,7 @@ public class EmpGuiEmployee {
     
         String[] labelStringemp = {
              "Name","Email",
-            "Phone Number", "Salary", "Address","Date Joined(DD/MM/YYYY)" //chnage done
+            "Phone Number", "Salary", "Address","Date Joined(YYYY-MM-DD)" //chnage done
         };
 
         JLabel[] labelemp = new JLabel[6];
